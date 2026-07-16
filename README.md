@@ -13,7 +13,7 @@ This repository implements the centralized components of the system:
 * **Frontend**: A Vue 3 SPA styled with Tailwind CSS v5 and built with Vite.
 * **Database & ORM**: PostgreSQL database schema and queries managed using Prisma ORM.
 
-For a deep dive into the system design, communication schemas, and architectural boundaries, see [resources/research/big_picture.md](file:///home/hlatsiieyhax/DevBlock/thingking_dev/thingking_analytics/resources/research/big_picture.md).
+For a deep dive into the system design, communication schemas, and architectural boundaries, see [resources/research/big_picture.md](resources/research/big_picture.md).
 
 ---
 

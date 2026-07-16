@@ -57,7 +57,7 @@ All changes must be documented systematically in both the `changelogs/` director
 
 - **Summarized Changelog (`CHANGELOG.md`):**
   - **Location:** The project root directory.
-  - **Content Format:** Serves as a high-level timeline showing brief summaries of changes, grouped by date. Each entry must include a clickable link (using the absolute `file://` scheme) to the corresponding detailed changelog in the `changelogs/` directory.
+  - **Content Format:** Serves as a high-level timeline showing brief summaries of changes, grouped by date. Each entry must include a clickable relative link to the corresponding detailed changelog in the `changelogs/` directory.
 
 
 ## 6. Resources (`resources/`)
