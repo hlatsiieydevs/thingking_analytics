@@ -1,0 +1,18 @@
+{
+  "name": "@thingking/worker-service",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@thingking/db": "*",
+    "@thingking/shared": "*",
+    "amqplib": "^0.10.4",
+    "dotenv": "^16.4.5",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  }
+}

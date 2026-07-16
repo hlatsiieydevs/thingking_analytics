@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  # Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: thingking-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_secure_pass
+      POSTGRES_DB: thingking_analytics
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # RabbitMQ Broker with MQTT capabilities
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: thingking-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"      # AMQP protocol
+      - "1883:1883"      # MQTT protocol
+      - "15672:15672"    # Management Web UI
+    command: >
+      sh -c "rabbitmq-plugins enable --offline rabbitmq_mqtt && rabbitmq-server"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  # Ingest Server (REST API for Backlog uploads & Node auth)
+  ingest-server:
+    build:
+      context: .
+      dockerfile: services/ingest-server/Dockerfile
+    container_name: thingking-ingest-server
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_secure_pass@postgres:5432/thingking_analytics?schema=public
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - INGEST_PORT=4000
+      - BACKLOG_UPLOAD_DIR=/usr/src/app/uploads
+      - JWT_SECRET=generate_a_secure_jwt_secret_token_here
+    depends_on:
+      - postgres
+      - rabbitmq
+    volumes:
+      - uploads_data:/usr/src/app/uploads
+
+  # Scalable Worker Service
+  worker-service:
+    build:
+      context: .
+      dockerfile: services/worker-service/Dockerfile
+    container_name: thingking-worker-service
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_secure_pass@postgres:5432/thingking_analytics?schema=public
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - DATA_LAKE_LOCAL_PATH=/usr/src/app/data_lake_raw
+    depends_on:
+      - postgres
+      - rabbitmq
+      - ingest-server
+    volumes:
+      - uploads_data:/usr/src/app/uploads
+      - datalake_data:/usr/src/app/data_lake_raw
+
+  # UI Backend Service (Express + WebSockets)
+  ui-service:
+    build:
+      context: .
+      dockerfile: services/ui-service/Dockerfile
+    container_name: thingking-ui-service
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_secure_pass@postgres:5432/thingking_analytics?schema=public
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - UI_PORT=5000
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  # Frontend Dev Service (Vue 3 + Vite)
+  frontend:
+    build:
+      context: .
+      dockerfile: services/frontend/Dockerfile
+    container_name: thingking-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - ui-service
+    volumes:
+      # Map local workspace to allow Vite HMR (Hot Module Replacement)
+      - ./services/frontend:/usr/src/app/services/frontend
+
+  # Temporary Ngrok Internet Exposure Gateway
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: thingking-ngrok
+    restart: always
+    environment:
+      - NGROK_AUTHTOKEN=your_ngrok_authtoken_here
+    command: http ingest-server:4000
+    depends_on:
+      - ingest-server
+
+  # Tailscale Private Network Agent
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: thingking-tailscale
+    restart: always
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+      - tailscale_state:/var/lib/tailscale
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - TS_AUTHKEY=tskey-auth-xxxxxx-your_tailscale_key
+      - TS_STATE_DIR=/var/lib/tailscale
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  uploads_data:
+  datalake_data:
+  tailscale_state:

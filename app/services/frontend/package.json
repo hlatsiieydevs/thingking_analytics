@@ -1,0 +1,21 @@
+{
+  "name": "@thingking/frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@thingking/shared": "*",
+    "vue": "^3.5.39"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "tailwindcss": "^4.0.0",
+    "vite": "^8.1.1"
+  }
+}

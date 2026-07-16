@@ -1,0 +1,78 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Represents registered edge nodes
+model Node {
+  id            String           @id
+  name          String
+  location      String?
+  jwtApiKeyHash String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  dwellLogs     DwellTimeLog[]
+  trafficLogs   TrafficFlowLog[]
+  sysMetrics    SystemMetric[]
+}
+
+// 1. Dwell Time Analytics
+model DwellTimeLog {
+  id           String   @id @default(uuid())
+  eventId      String
+  nodeId       String
+  timestamp    DateTime
+  trackId      Int
+  zoneId       Int
+  dwellTimeSec Float
+  createdAt    DateTime @default(now())
+
+  node         Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@unique([nodeId, timestamp, trackId])
+  @@index([timestamp])
+  @@index([nodeId])
+}
+
+// 2. Traffic Flow / Path Coordinates
+model TrafficFlowLog {
+  id        String   @id @default(uuid())
+  eventId   String
+  nodeId    String
+  timestamp DateTime
+  trackId   Int
+  x         Float
+  y         Float
+  createdAt DateTime @default(now())
+
+  node      Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@unique([nodeId, timestamp, trackId, x, y])
+  @@index([timestamp])
+  @@index([nodeId])
+}
+
+// 3. System Performance & Health Metrics
+model SystemMetric {
+  id              String   @id @default(uuid())
+  eventId         String
+  nodeId          String
+  timestamp       DateTime
+  cpuLoadPercent  Float
+  ramUsagePercent Float
+  vramUsageMb     Float
+  currentFps      Float
+  livePeopleCount Int
+  zoneCounts      Int[]
+  createdAt       DateTime @default(now())
+
+  node            Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@unique([nodeId, timestamp])
+  @@index([timestamp])
+  @@index([nodeId])
+}

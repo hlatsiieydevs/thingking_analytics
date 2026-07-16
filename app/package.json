@@ -1,0 +1,19 @@
+{
+  "name": "thingking-analytics-monorepo",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:ingest": "npm run dev --workspace=services/ingest-server",
+    "dev:worker": "npm run dev --workspace=services/worker-service",
+    "dev:ui": "npm run dev --workspace=services/ui-service",
+    "dev:frontend": "npm run dev --workspace=services/frontend",
+    "db:generate": "npm run generate --workspace=packages/db",
+    "db:migrate": "npm run migrate --workspace=packages/db",
+    "db:studio": "npm run studio --workspace=packages/db",
+    "build": "npm run build --workspaces --if-present",
+    "start": "npm run start --workspaces --if-present"
+  }
+}
